@@ -113,3 +113,25 @@ def delete_note_db(note_id):
 
     return row
     
+
+def update_note_db(note_id, title, content):
+    row = None
+    conn = create_connection()
+
+    if conn is not None:
+        try:
+            cursor = conn.cursor()
+            cursor.execute("UPDATE notes SET title = ?, content = ? WHERE id = ?", (title, content, note_id))
+            conn.commit()
+            cursor.execute("SELECT id, title, content FROM notes WHERE id = ?", (note_id,))
+
+
+            row = cursor.fetchone()
+
+        except sqlite3.Error as e:
+            print(e)
+
+        finally:
+            conn.close()
+
+    return row
