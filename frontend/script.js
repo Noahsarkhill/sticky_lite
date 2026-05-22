@@ -8,7 +8,50 @@ console.log(noteTitle);
 console.log(noteContent);
 console.log(notesContainer);
 
-noteForm.addEventListener("submit", function(event) {
+function displayNote(note) {
+    const noteCard = document.createElement("div");
+    noteCard.classList.add("note-card");
+
+    noteCard.innerHTML = `
+        <h3>${note.title}</h3>
+        <p>${note.content}</p>
+        <button data-id="${note.id}">Delete</button>
+    `;
+
+    const deleteButton = noteCard.querySelector("button");
+
+    deleteButton.addEventListener("click", async function() {
+        const response = await fetch(`http://127.0.0.1:8000/notes/${note.id}`, {
+            method: "DELETE"
+        });
+
+        const deletedNote = await response.json();
+
+        console.log(deletedNote);
+
+        noteCard.remove()
+    });
+
+    notesContainer.appendChild(noteCard);
+}
+
+
+async function loadNotes() {
+    const response = await fetch("http://127.0.0.1:8000/notes");
+
+    const notes = await response.json();
+
+    console.log(notes);
+
+    for (const note of notes) {
+        displayNote(note);
+    }
+}
+
+loadNotes();
+
+
+noteForm.addEventListener("submit", async function(event) {
     event.preventDefault();
 
     console.log("Form submitted");
@@ -17,18 +60,22 @@ noteForm.addEventListener("submit", function(event) {
     const title = noteTitle.value;
     const content = noteContent.value;
 
-    console.log(title);
-    console.log(content);
-    const noteCard = document.createElement("div");
-    noteCard.classList.add("note-card");
+    const response = await fetch("http://127.0.0.1:8000/notes", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            title: title,
+            content: content
+        })
+    });
 
-    noteCard.innerHTML = `
-        <h3>${title}</h3>
-        <p>${content}</p>
-        <button>Delete</button>
-        `;
+    const savedNote = await response.json();
 
-    notesContainer.appendChild(noteCard);
+    console.log(savedNote);
+
+    displayNote(savedNote.note);
 
     noteTitle.value = "";
     noteContent.value = "";
