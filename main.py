@@ -4,7 +4,7 @@ from db import *
 from pydantic import BaseModel
 
 app = FastAPI()
-
+# security check for the frontend to be able to reach requests from port 5500 on port 8000
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://127.0.0.1:5500"],
@@ -15,12 +15,12 @@ app.add_middleware(
 
 create_notes_table()
 
-
+# pydantic model data translator + validator, turns frontend JSON into a validated python object using FastAPI + Pydantic
 class NoteData(BaseModel):
     title: str
     content: str
 
-
+# API endpoint to create and save a new note
 @app.post("/notes")
 def post_note(note: NoteData):
     clean_title = note.title.strip()
@@ -32,7 +32,7 @@ def post_note(note: NoteData):
         return {"message": "Content cannot be empty"}
 
     new_note_id = save_note_db(clean_title, clean_content)
-
+# API handler returning a python dictionary that then gets converted to the JSON response for the frontend
     return {
         "message": "Note created successfully",
         "note": {
@@ -61,6 +61,7 @@ def get_notes():
 
     return notes
 
+
 @app.get("/notes/{note_id}")
 def get_one(note_id: int):
     row = load_note_db(note_id)
@@ -75,6 +76,7 @@ def get_one(note_id: int):
     }
 
     return note
+
 
 @app.delete("/notes/{note_id}")
 def delete_one(note_id: int):

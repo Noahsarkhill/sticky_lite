@@ -3,6 +3,8 @@ const noteTitle = document.getElementById("note-title");
 const noteContent = document.getElementById("note-content");
 const notesContainer = document.getElementById("notes-container");
 
+let editingNoteId = null;
+
 console.log(noteForm);
 console.log(noteTitle);
 console.log(noteContent);
@@ -15,10 +17,22 @@ function displayNote(note) {
     noteCard.innerHTML = `
         <h3>${note.title}</h3>
         <p>${note.content}</p>
-        <button data-id="${note.id}">Delete</button>
+        <button class="edit-btn" data-id="${note.id}">Edit</button>
+        <button class="delete-btn" data-id="${note.id}">Delete</button>
     `;
 
-    const deleteButton = noteCard.querySelector("button");
+    const editButton = noteCard.querySelector(".edit-btn");
+    const deleteButton = noteCard.querySelector(".delete-btn");
+
+
+    editButton.addEventListener("click", function() {
+        editingNoteId = note.id;
+
+
+        noteTitle.value = note.title;
+        noteContent.value = note.content;
+    });
+
 
     deleteButton.addEventListener("click", async function() {
         const response = await fetch(`http://127.0.0.1:8000/notes/${note.id}`, {
@@ -29,7 +43,7 @@ function displayNote(note) {
 
         console.log(deletedNote);
 
-        noteCard.remove()
+        noteCard.remove();
     });
 
     notesContainer.appendChild(noteCard);
@@ -60,22 +74,45 @@ noteForm.addEventListener("submit", async function(event) {
     const title = noteTitle.value;
     const content = noteContent.value;
 
-    const response = await fetch("http://127.0.0.1:8000/notes", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-            title: title,
-            content: content
-        })
-    });
 
-    const savedNote = await response.json();
+    if (editingNoteId === null) {
+        const response = await fetch("http://127.0.0.1:8000/notes", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                title: title,
+                content: content
+            })
+        });
 
-    console.log(savedNote);
+        const savedNote = await response.json();
 
-    displayNote(savedNote.note);
+        console.log(savedNote);
+
+        displayNote(savedNote.note);
+    } else {
+        const response = await fetch(`http://127.0.0.1:8000/notes/${editingNoteId}`, {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                title: title,
+                content: content
+            })
+        });
+
+        const updatedNote = await response.json();
+
+        console.log(updatedNote);
+
+        notesContainer.innerHTML = "";
+        loadNotes();
+
+        editingNoteId = null;
+    }
 
     noteTitle.value = "";
     noteContent.value = "";

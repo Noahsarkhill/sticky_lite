@@ -123,6 +123,10 @@ def update_note_db(note_id, title, content):
             cursor = conn.cursor()
             cursor.execute("UPDATE notes SET title = ?, content = ? WHERE id = ?", (title, content, note_id))
             conn.commit()
+
+            if cursor.rowcount == 0:
+                return None
+
             cursor.execute("SELECT id, title, content FROM notes WHERE id = ?", (note_id,))
 
 
