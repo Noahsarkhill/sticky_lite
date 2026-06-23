@@ -44,6 +44,12 @@ function displayNote(note) {
 
         console.log(deletedNote);
 
+        statusMessage.textContent = deletedNote.message;
+
+        setTimeout(() => {
+            statusMessage.textContent = "";
+        }, 3000);
+
         noteCard.remove();
     });
 
@@ -114,6 +120,12 @@ noteForm.addEventListener("submit", async function(event) {
         const updatedNote = await response.json();
 
         console.log(updatedNote);
+
+        statusMessage.textContent = updatedNote.message;
+
+        setTimeout(() => {
+            statusMessage.textContent = "";
+        }, 3000);
 
         notesContainer.innerHTML = "";
         loadNotes();

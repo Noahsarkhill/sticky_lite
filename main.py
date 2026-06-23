@@ -86,11 +86,10 @@ def delete_one(note_id: int):
         return {"message": "Note not found"}
     
     deleted_note = {
-        "id": row[0],
         "title": row[1]
     }
 
-    return {"message": f"You have deleted {deleted_note}"}
+    return {"message": f"You have deleted note: {deleted_note["title"]}"}
 
 
 @app.put("/notes/{note_id}")
@@ -115,6 +114,6 @@ def edit_note(note_id: int, note: NoteData):
     }
 
     return {
-        "message": "Note updated successfully", 
+        "message": f"Note: {updated_note['title']} updated successfully",
         "note": updated_note
     }
