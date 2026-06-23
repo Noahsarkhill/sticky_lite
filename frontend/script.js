@@ -5,6 +5,14 @@ const notesContainer = document.getElementById("notes-container");
 const statusMessage = document.getElementById("status-message");
 let editingNoteId = null;
 
+function showStatusMessage(message) {
+    statusMessage.textContent = message;
+
+    setTimeout(() => {
+        statusMessage.textContent = "";
+   }, 3000);
+}
+
 console.log(noteForm);
 console.log(noteTitle);
 console.log(noteContent);
@@ -44,11 +52,7 @@ function displayNote(note) {
 
         console.log(deletedNote);
 
-        statusMessage.textContent = deletedNote.message;
-
-        setTimeout(() => {
-            statusMessage.textContent = "";
-        }, 3000);
+        showStatusMessage(deletedNote.message);
 
         noteCard.remove();
     });
@@ -98,11 +102,7 @@ noteForm.addEventListener("submit", async function(event) {
 
         console.log(savedNote);
 
-        statusMessage.textContent = savedNote.message;
-
-        setTimeout(function() {
-            statusMessage.textContent = "";
-        }, 3000);
+        showStatusMessage(savedNote.message);
 
         displayNote(savedNote.note);
     } else {
@@ -121,11 +121,7 @@ noteForm.addEventListener("submit", async function(event) {
 
         console.log(updatedNote);
 
-        statusMessage.textContent = updatedNote.message;
-
-        setTimeout(() => {
-            statusMessage.textContent = "";
-        }, 3000);
+        showStatusMessage(updatedNote.message);
 
         notesContainer.innerHTML = "";
         loadNotes();
