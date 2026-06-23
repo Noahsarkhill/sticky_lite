@@ -2,13 +2,14 @@ const noteForm = document.getElementById("note-form");
 const noteTitle = document.getElementById("note-title");
 const noteContent = document.getElementById("note-content");
 const notesContainer = document.getElementById("notes-container");
-
+const statusMessage = document.getElementById("status-message");
 let editingNoteId = null;
 
 console.log(noteForm);
 console.log(noteTitle);
 console.log(noteContent);
 console.log(notesContainer);
+console.log(statusMessage);
 
 function displayNote(note) {
     const noteCard = document.createElement("div");
@@ -90,6 +91,12 @@ noteForm.addEventListener("submit", async function(event) {
         const savedNote = await response.json();
 
         console.log(savedNote);
+
+        statusMessage.textContent = savedNote.message;
+
+        setTimeout(function() {
+            statusMessage.textContent = "";
+        }, 3000);
 
         displayNote(savedNote.note);
     } else {
