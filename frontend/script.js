@@ -7,6 +7,16 @@ const submitButton = document.getElementById("submit-button");
 const cancelEditButton = document.getElementById("cancel-edit-button")
 let editingNoteId = null;
 
+
+function resetForm() {
+    editingNoteId = null;
+    noteTitle.value = "";
+    noteContent.value = "";
+    submitButton.textContent = "Save Note";
+    cancelEditButton.style.display = "none";
+}
+
+
 function showStatusMessage(message) {
   statusMessage.textContent = message;
 
@@ -77,11 +87,7 @@ loadNotes();
 
 
 cancelEditButton.addEventListener("click", () => {
-    editingNoteId = null;
-    noteTitle.value = "";
-    noteContent.value = "";
-    submitButton.textContent = "Save Note";
-    cancelEditButton.style.display = "none";
+    resetForm();
     showStatusMessage("Edit cancelled");
 });
 
@@ -140,7 +146,5 @@ noteForm.addEventListener("submit", async function (event) {
     editingNoteId = null;
   }
 
-  noteTitle.value = "";
-  noteContent.value = "";
-  submitButton.textContent = "Save Note";
+  resetForm();
 });
