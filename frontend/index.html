@@ -7,26 +7,39 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <header class="app-header">
+        <h1>Sticky Lite</h1>
+    </header>
+    
+    
+    
+    <main class="app-layout">
 
-    <h1>Sticky Lite</h1>
+        <section class="notes-sidebar">
+            <h2>Your Notes</h2>
 
-    <form id="note-form">
-        <input id="note-title" type="text" placeholder="Note title">
+            <section id="notes-container"></section>
+        </section>
 
-        <textarea id="note-content" placeholder="Write your note here"></textarea>
+        <section class="editor-panel">
+            <h2>Note Editor</h2>
 
-        <button id="submit-button" type="submit">Save Note</button>
+            <form id="note-form">
+                <input id="note-title" type="text" placeholder="Note title">
 
-    </form>
+                <textarea id="note-content" placeholder="Write your note here"></textarea>
 
-    <p id="status-message"></p>
+                <button id="submit-button" type="submit">Save Note</button>
 
-    <h2>Your Notes</h2>
-
-    <section id="notes-container">
+                <button id="cancel-edit-button" type="button">Cancel Edit</button>
+                
+            </form>
+            
+            <p id="status-message"></p>
+            
+        </section>
         
-        
-    </section>
+    </main>
 
     <script src="script.js"></script>
 </body>

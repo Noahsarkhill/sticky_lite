@@ -4,6 +4,7 @@ const noteContent = document.getElementById("note-content");
 const notesContainer = document.getElementById("notes-container");
 const statusMessage = document.getElementById("status-message");
 const submitButton = document.getElementById("submit-button");
+const cancelEditButton = document.getElementById("cancel-edit-button")
 let editingNoteId = null;
 
 function showStatusMessage(message) {
@@ -11,7 +12,7 @@ function showStatusMessage(message) {
 
   setTimeout(() => {
     statusMessage.textContent = "";
-  }, 3000);
+  }, 5000);
 }
 
 console.log(noteForm);
@@ -40,6 +41,7 @@ function displayNote(note) {
     noteTitle.value = note.title;
     noteContent.value = note.content;
     submitButton.textContent = "Edit Note";
+    cancelEditButton.style.display = "block";
   });
 
   deleteButton.addEventListener("click", async function () {
@@ -72,6 +74,17 @@ async function loadNotes() {
 }
 
 loadNotes();
+
+
+cancelEditButton.addEventListener("click", () => {
+    editingNoteId = null;
+    noteTitle.value = "";
+    noteContent.value = "";
+    submitButton.textContent = "Save Note";
+    cancelEditButton.style.display = "none";
+    showStatusMessage("Edit cancelled");
+});
+
 
 noteForm.addEventListener("submit", async function (event) {
   event.preventDefault();
