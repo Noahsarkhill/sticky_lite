@@ -20,6 +20,12 @@ class NoteData(BaseModel):
     title: str
     content: str
 
+
+@app.get("/health")
+def health_check():
+    return{"status": "ok"}
+
+
 # API endpoint to create and save a new note
 @app.post("/notes")
 def post_note(note: NoteData):

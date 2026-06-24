@@ -4,7 +4,9 @@
   "description": "",
   "main": "electron-main.js",
   "scripts": {
-    "start": "electron ."
+    "backend": ".venv/bin/python -m uvicorn main:app --host 127.0.0.1 --port 8000",
+    "electron": "wait-on http-get://127.0.0.1:8000/health && electron .",
+    "dev": "concurrently -k \"npm run backend\" \"npm run electron\""
   },
   "repository": {
     "type": "git",
@@ -19,6 +21,8 @@
   },
   "homepage": "https://github.com/Noahsarkhill/sticky_lite#readme",
   "devDependencies": {
-    "electron": "^42.5.0"
+    "concurrently": "^10.0.3",
+    "electron": "^42.5.0",
+    "wait-on": "^9.0.10"
   }
 }
