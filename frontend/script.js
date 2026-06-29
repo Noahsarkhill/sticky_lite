@@ -57,7 +57,9 @@ function displayNote(note) {
   noteCard.dataset.id = note.id;
 
   noteCard.innerHTML = `
-      <h3>${note.title}</h3>
+      <h3>
+        ${note.pinned === 1 ? "📌 " : ""}${note.title}
+      </h3>
       <p>${note.content}</p>
       <button class="pin-btn" data-id="${note.id}">
         ${note.pinned === 1 ? "Unpin" : "Pin"}
