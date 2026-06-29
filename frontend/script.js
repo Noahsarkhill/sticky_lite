@@ -57,12 +57,16 @@ function displayNote(note) {
   noteCard.dataset.id = note.id;
 
   noteCard.innerHTML = `
-        <h3>${note.title}</h3>
-        <p>${note.content}</p>
-        <button class="delete-btn" data-id="${note.id}">Delete</button>
-    `;
+      <h3>${note.title}</h3>
+      <p>${note.content}</p>
+      <button class="pin-btn" data-id="${note.id}">
+        ${note.pinned === 1 ? "Unpin" : "Pin"}
+      </button>
+      <button class="delete-btn" data-id="${note.id}">Delete</button>
+  `;
 
   const deleteButton = noteCard.querySelector(".delete-btn");
+  const pinButton = noteCard.querySelector(".pin-btn");
 
   noteCard.addEventListener("click", function () {
     editingNoteId = note.id;
@@ -78,6 +82,33 @@ function displayNote(note) {
     });
 
     noteCard.classList.add("selected");
+  });
+
+  pinButton.addEventListener("click", async function (event) {
+    event.stopPropagation();
+
+    try {
+      const response = await fetch(
+        `http://127.0.0.1:8000/notes/${note.id}/pin`,
+        {
+          method: "PATCH",
+        },
+      );
+
+      const pinnedNote = await handleApiResponse(
+        response,
+        "Could not update pin",
+      );
+
+      console.log(pinnedNote);
+
+      showStatusMessage(pinnedNote.message, "success");
+
+      notesContainer.innerHTML = "";
+      await loadNotes();
+    } catch (error) {
+      showStatusMessage(error.message, "error");
+    }
   });
 
   deleteButton.addEventListener("click", async function (event) {
