@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from db import *
 from pydantic import BaseModel
@@ -14,6 +14,7 @@ app.add_middleware(
 )
 
 create_notes_table()
+ensure_pinned_column()
 
 # pydantic model data translator + validator, turns frontend JSON into a validated python object using FastAPI + Pydantic
 class NoteData(BaseModel):
@@ -23,7 +24,7 @@ class NoteData(BaseModel):
 
 @app.get("/health")
 def health_check():
-    return{"status": "ok"}
+    return {"status": "ok"}
 
 
 # API endpoint to create and save a new note
@@ -33,18 +34,24 @@ def post_note(note: NoteData):
     clean_content = note.content.strip()
 
     if clean_title == "":
-        return {"message": "Title cannot be empty"}
+        raise HTTPException(status_code=400, detail="Title cannot be empty")
     if clean_content == "":
-        return {"message": "Content cannot be empty"}
+        raise HTTPException(status_code=400, detail="Content cannot be empty")
 
     new_note_id = save_note_db(clean_title, clean_content)
+    if new_note_id is None:
+        raise HTTPException(status_code=500, detail="Failed to create note")
+    saved_row = load_note_db(new_note_id)
+    if saved_row is None:
+        raise HTTPException(status_code=500, detail="Note was created but could not be loaded")
 # API handler returning a python dictionary that then gets converted to the JSON response for the frontend
     return {
         "message": "Note created successfully",
         "note": {
-            "id": new_note_id,
-            "title": clean_title,
-            "content": clean_content
+            "id": saved_row[0],
+            "title": saved_row[1],
+            "content": saved_row[2],
+            "pinned": saved_row[3]
 
         }
     }
@@ -60,7 +67,8 @@ def get_notes():
         note = {
             "id": row[0],
             "title": row[1],
-            "content": row[2]
+            "content": row[2],
+            "pinned": row[3]
                 }
                 
         notes.append(note)
@@ -73,12 +81,13 @@ def get_one(note_id: int):
     row = load_note_db(note_id)
 
     if row is None:
-        return {"message": "Note not found"}
+        raise HTTPException(status_code=404, detail="Note not found")
 
     note = {
         "id": row[0],
         "title": row[1],
-        "content": row[2]
+        "content": row[2],
+        "pinned": row[3]
     }
 
     return note
@@ -89,13 +98,13 @@ def delete_one(note_id: int):
     row = delete_note_db(note_id)
 
     if row is None:
-        return {"message": "Note not found"}
+        raise HTTPException(status_code=404, detail="Note not found")
     
     deleted_note = {
         "title": row[1]
     }
 
-    return {"message": f"You have deleted note: {deleted_note["title"]}"}
+    return {"message": f"You have deleted note: {deleted_note['title']}"}
 
 
 @app.put("/notes/{note_id}")
@@ -104,22 +113,35 @@ def edit_note(note_id: int, note: NoteData):
     content = note.content.strip()
 
     if title == "":
-        return {"message": "Title cannot be empty"}
+        raise HTTPException(status_code=400, detail="Title cannot be empty")
     if content == "":
-        return {"message": "Content cannot be empty"}
+        raise HTTPException(status_code=400, detail="Content cannot be empty")
 
     updated_row = update_note_db(note_id, title, content)
 
     if updated_row is None:
-        return {"message": "Note not found"}
+        raise HTTPException(status_code=404, detail="Note not found")
 
     updated_note = {
         "id": updated_row[0],
         "title": updated_row[1],
-        "content": updated_row[2]
+        "content": updated_row[2],
+        "pinned": updated_row[3]
     }
 
     return {
         "message": f"Note: {updated_note['title']} updated successfully",
+        "note": updated_note
+    }
+
+@app.patch("/notes/{note_id}/pin")
+def toggle_pin(note_id: int):
+    updated_note = toggle_pin_db(note_id)
+
+    if updated_note is None:
+        raise HTTPException(status_code=404, detail="Note not found")
+    
+    return {
+        "message": "Note pin status updated successfully",
         "note": updated_note
     }

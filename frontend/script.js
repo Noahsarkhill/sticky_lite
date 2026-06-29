@@ -4,25 +4,45 @@ const noteContent = document.getElementById("note-content");
 const notesContainer = document.getElementById("notes-container");
 const statusMessage = document.getElementById("status-message");
 const submitButton = document.getElementById("submit-button");
-const cancelEditButton = document.getElementById("cancel-edit-button")
+const cancelEditButton = document.getElementById("cancel-edit-button");
 let editingNoteId = null;
 
-
+// Helper functions
 function resetForm() {
-    editingNoteId = null;
-    noteTitle.value = "";
-    noteContent.value = "";
-    submitButton.textContent = "Save Note";
-    cancelEditButton.style.display = "none";
+  editingNoteId = null;
+  noteTitle.value = "";
+  noteContent.value = "";
+  submitButton.textContent = "Save Note";
+  cancelEditButton.style.display = "none";
+
+  document.querySelectorAll(".note-card").forEach((card) => {
+    card.classList.remove("selected");
+  });
 }
 
-
-function showStatusMessage(message) {
+function showStatusMessage(message, type = "success") {
   statusMessage.textContent = message;
+
+  if (type === "error") {
+    statusMessage.style.color = "red";
+  } else {
+    statusMessage.style.color = "green";
+  }
 
   setTimeout(() => {
     statusMessage.textContent = "";
-  }, 5000);
+  }, 3000);
+}
+
+async function handleApiResponse(response, fallbackMessage) {
+  const data = await response.json();
+
+  if (!response.ok) {
+    const errorMessage = data.detail || data.message || fallbackMessage;
+    throw new Error(errorMessage);
+  }
+
+  return data;
 }
 
 console.log(noteForm);
@@ -34,96 +54,95 @@ console.log(statusMessage);
 function displayNote(note) {
   const noteCard = document.createElement("div");
   noteCard.classList.add("note-card");
+  noteCard.dataset.id = note.id;
 
   noteCard.innerHTML = `
         <h3>${note.title}</h3>
         <p>${note.content}</p>
-        <button class="edit-btn" data-id="${note.id}">Edit</button>
         <button class="delete-btn" data-id="${note.id}">Delete</button>
     `;
 
-  const editButton = noteCard.querySelector(".edit-btn");
   const deleteButton = noteCard.querySelector(".delete-btn");
 
-  editButton.addEventListener("click", function () {
+  noteCard.addEventListener("click", function () {
     editingNoteId = note.id;
 
     noteTitle.value = note.title;
     noteContent.value = note.content;
+
     submitButton.textContent = "Edit Note";
     cancelEditButton.style.display = "block";
-  });
 
-  deleteButton.addEventListener("click", async function () {
-    const response = await fetch(`http://127.0.0.1:8000/notes/${note.id}`, {
-      method: "DELETE",
+    document.querySelectorAll(".note-card").forEach((card) => {
+      card.classList.remove("selected");
     });
 
-    const deletedNote = await response.json();
+    noteCard.classList.add("selected");
+  });
 
-    console.log(deletedNote);
+  deleteButton.addEventListener("click", async function (event) {
+    event.stopPropagation();
+    try {
+      const response = await fetch(`http://127.0.0.1:8000/notes/${note.id}`, {
+        method: "DELETE",
+      });
 
-    showStatusMessage(deletedNote.message);
+      const deletedNote = await handleApiResponse(
+        response,
+        "Could not delete note",
+      );
 
-    noteCard.remove();
+      console.log(deletedNote);
+
+      showStatusMessage(deletedNote.message, "success");
+
+      noteCard.remove();
+
+      if (editingNoteId === note.id) {
+        resetForm();
+      }
+    } catch (error) {
+      showStatusMessage(error.message, "error");
+    }
   });
 
   notesContainer.appendChild(noteCard);
 }
 
 async function loadNotes() {
-  const response = await fetch("http://127.0.0.1:8000/notes");
+  try {
+    const response = await fetch("http://127.0.0.1:8000/notes");
 
-  const notes = await response.json();
+    const notes = await handleApiResponse(response, "Could not load notes");
 
-  console.log(notes);
+    console.log(notes);
 
-  for (const note of notes) {
-    displayNote(note);
+    for (const note of notes) {
+      displayNote(note);
+    }
+  } catch (error) {
+    showStatusMessage(error.message, "error");
   }
 }
 
 loadNotes();
 
-
 cancelEditButton.addEventListener("click", () => {
-    resetForm();
-    showStatusMessage("Edit cancelled");
+  resetForm();
+  showStatusMessage("Edit cancelled");
 });
-
 
 noteForm.addEventListener("submit", async function (event) {
   event.preventDefault();
+  try {
+    console.log("Form submitted");
 
-  console.log("Form submitted");
+    const title = noteTitle.value;
+    const content = noteContent.value;
 
-  const title = noteTitle.value;
-  const content = noteContent.value;
-
-  if (editingNoteId === null) {
-    const response = await fetch("http://127.0.0.1:8000/notes", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        title: title,
-        content: content,
-      }),
-    });
-
-    const savedNote = await response.json();
-
-    console.log(savedNote);
-
-    showStatusMessage(savedNote.message);
-
-    displayNote(savedNote.note);
-  } else {
-    const response = await fetch(
-      `http://127.0.0.1:8000/notes/${editingNoteId}`,
-      {
-        method: "PUT",
+    if (editingNoteId === null) {
+      const response = await fetch("http://127.0.0.1:8000/notes", {
+        method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
@@ -131,20 +150,50 @@ noteForm.addEventListener("submit", async function (event) {
           title: title,
           content: content,
         }),
-      },
-    );
+      });
 
-    const updatedNote = await response.json();
+      const savedNote = await handleApiResponse(
+        response,
+        "Could not save note",
+      );
 
-    console.log(updatedNote);
+      console.log(savedNote);
 
-    showStatusMessage(updatedNote.message);
+      showStatusMessage(savedNote.message, "success");
 
-    notesContainer.innerHTML = "";
-    loadNotes();
+      displayNote(savedNote.note);
+    } else {
+      const response = await fetch(
+        `http://127.0.0.1:8000/notes/${editingNoteId}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            title: title,
+            content: content,
+          }),
+        },
+      );
 
-    editingNoteId = null;
+      const updatedNote = await handleApiResponse(
+        response,
+        "Could not update note",
+      );
+
+      console.log(updatedNote);
+
+      showStatusMessage(updatedNote.message, "success");
+
+      notesContainer.innerHTML = "";
+      await loadNotes();
+
+      editingNoteId = null;
+    }
+
+    resetForm();
+  } catch (error) {
+    showStatusMessage(error.message, "error");
   }
-
-  resetForm();
 });
