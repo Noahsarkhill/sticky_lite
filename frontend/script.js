@@ -56,6 +56,10 @@ function displayNote(note) {
   noteCard.classList.add("note-card");
   noteCard.dataset.id = note.id;
 
+  if (note.pinned === 1) {
+  noteCard.classList.add("pinned");
+}
+
   noteCard.innerHTML = `
       <h3>
         ${note.pinned === 1 ? "📌 " : ""}${note.title}
