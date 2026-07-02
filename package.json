@@ -4,9 +4,8 @@
   "description": "",
   "main": "electron-main.js",
   "scripts": {
-    "backend": ".venv/bin/python -m uvicorn main:app --host 127.0.0.1 --port 8000",
-    "electron": "wait-on http-get://127.0.0.1:8000/health && electron .",
-    "dev": "concurrently -k \"npm run backend\" \"npm run electron\""
+    "backend": ".venv/bin/python run_backend.py",
+    "dev": "electron ."
   },
   "repository": {
     "type": "git",

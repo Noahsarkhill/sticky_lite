@@ -1,12 +1,22 @@
 import sqlite3
+import os
+from pathlib import Path
 
-DB_NAME = "sticky_lite.db"
+
+DEFAULT_DATA_DIR = Path.home() / ".config" / "sticky_lite"
+
+DATA_DIR = Path(os.environ.get("STICKY_LITE_DATA_DIR", DEFAULT_DATA_DIR))
+DATA_DIR.mkdir(parents=True, exist_ok=True)
+
+DB_PATH = DATA_DIR / "sticky_lite.db"
+
+
 
 def create_connection():
     conn = None
 
     try:
-        conn = sqlite3.connect(DB_NAME)
+        conn = sqlite3.connect(str(DB_PATH))
 
     except sqlite3.Error as e:
         print(e)
